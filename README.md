@@ -37,6 +37,7 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 ### 3. Install Dependencies
+The trained model files are too large for GitHub. Download them from [Google Drive](https://drive.google.com/file/d/14Cz8IPuspJ8CoVCNFrhWhriWuXTlJ4IU/view?usp=sharing)
 ```bash
 pip install -r requirements.txt
 ```
