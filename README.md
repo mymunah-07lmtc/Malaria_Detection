@@ -8,11 +8,16 @@ An AI-powered malaria detection tool using deep learning (Convolutional Neural N
 
 ## 📦 Project Structure
 Malaria_Detection/
-├── app.py # Streamlit web application
-├── train_malaria_model.py # CNN training script
-├── requirements.txt # Python dependencies
-├── .gitignore # Files to exclude from Git
-└── README.md # This file
+
+├── app.py                   # Streamlit web application
+
+├── train_malaria_model.py   # CNN training script
+
+├── requirements.txt         # Python dependencies
+
+├── .gitignore               # Files to exclude from Git
+
+└── README.md                # This file
 
 ---
 
