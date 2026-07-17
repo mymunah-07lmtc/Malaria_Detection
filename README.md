@@ -76,9 +76,13 @@ streamlit run app.py
 ---
 
 ## 📬 Contact
+
 **Author:** Maimouna Tougoutcho Coulibaly
+
 **Email:** maimounatcoul@gmail.com
+
 **GitHub:** [github.com/mymunah-07lmtc](https://www.github.com/mymunah-07lmtc)
+
 **LinkedIn:** [linkedin.com/in/maimouna-tougoutcho-coulibaly](https://www.linkedin.com/in/maimouna-tougoutcho-coulibaly)
 
 ---
