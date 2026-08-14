@@ -1,14 +1,8 @@
-import tflite_runtime.interpreter as tflite
+import streamlit as st
 import numpy as np
 from PIL import Image
-import streamlit as st
-
-# Load TFLite model
-interpreter = tflite.Interpreter(model_path="malaria_detector.tflite")
-interpreter.allocate_tensors()
-
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
+import tflite_runtime.interpreter as tflite
+import os
 
 # -------------------------------
 # PAGE CONFIG
@@ -19,7 +13,7 @@ st.set_page_config(
     layout="centered"
 )
 
-# PWA Meta Tags (for installation)
+# PWA Meta Tags
 st.markdown("""
 <link rel="manifest" href="manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -28,45 +22,106 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------
+# LANGUAGE SELECTOR
+# -------------------------------
+lang = st.sidebar.radio("Language / Langue", ["English", "Français"])
+
+# Language dictionary
+T = {
+    "English": {
+        "title": "🦟 Sahel MalaVision",
+        "subtitle": "AI-Powered Malaria Detector | Research Prototype",
+        "disclaimer_title": "📋 Disclaimer",
+        "disclaimer": "**For Research Purposes Only.** This tool is a proof-of-concept prototype. It is **NOT** a certified medical device. All predictions must be verified by a qualified healthcare professional.",
+        "capture": "📸 Capture Blood Smear Image",
+        "camera": "Take a photo of the blood smear",
+        "upload": "Or upload an image",
+        "analyzing": "Analyzing...",
+        "result": "🩺 Screening Result",
+        "infected": "⚠️ **Result: Parasitized (Infected)**",
+        "infected_msg": "Refer the patient for immediate clinical evaluation and confirmatory testing.",
+        "uninfected": "✅ **Result: Uninfected**",
+        "uninfected_msg": "No parasites detected. Continue routine monitoring.",
+        "confidence": "Confidence",
+        "license": "🔑 Licensed to: [Clinic Name] | Expires: [Date]",
+        "footer": "Built with ❤️ by Maimouna Tougoutcho Coulibaly | Sahel BioMed Solutions",
+        "mode": "Mode",
+        "demo": "Demo",
+        "live": "Live"
+    },
+    "Français": {
+        "title": "🦟 Sahel MalaVision",
+        "subtitle": "Détecteur de Paludisme par IA | Prototype de Recherche",
+        "disclaimer_title": "📋 Avis de non-responsabilité",
+        "disclaimer": "**À des fins de recherche uniquement.** Cet outil est un prototype de preuve de concept. Ce n'est **PAS** un dispositif médical certifié. Toutes les prédictions doivent être vérifiées par un professionnel de santé qualifié.",
+        "capture": "📸 Capturer l'image du frottis sanguin",
+        "camera": "Prendre une photo du frottis sanguin",
+        "upload": "Ou télécharger une image",
+        "analyzing": "Analyse en cours...",
+        "result": "🩺 Résultat du dépistage",
+        "infected": "⚠️ **Résultat : Parasité (Infecté)**",
+        "infected_msg": "Orientez le patient pour une évaluation clinique immédiate et un test de confirmation.",
+        "uninfected": "✅ **Résultat : Non infecté**",
+        "uninfected_msg": "Aucun parasite détecté. Poursuivre la surveillance de routine.",
+        "confidence": "Confiance",
+        "license": "🔑 Licencié à : [Nom de la clinique] | Expire le : [Date]",
+        "footer": "Construit avec ❤️ par Maimouna Tougoutcho Coulibaly | Sahel BioMed Solutions",
+        "mode": "Mode",
+        "demo": "Démo",
+        "live": "En direct"
+    }
+}
+
+text = T[lang]
+
+# -------------------------------
 # BRANDING
 # -------------------------------
-st.title("🦟 Sahel MalaVision")
-st.caption("AI-Powered Malaria Detector | Research Prototype")
+st.title(text["title"])
+st.caption(text["subtitle"])
 
-with st.expander("📋 Disclaimer"):
-    st.warning("""
-    **For Research Purposes Only.** This tool is a proof-of-concept prototype.
-    It is **NOT** a certified medical device. All predictions must be verified by a qualified healthcare professional.
-    """)
+with st.expander(text["disclaimer_title"], expanded=True):
+    st.warning(text["disclaimer"])
 
 # -------------------------------
-# LOAD MODEL
+# LOAD TFLITE MODEL
 # -------------------------------
 @st.cache_resource
-def load_model():
-    model = tf.keras.models.load_model("malaria_detector.keras")
-    return model
+def load_tflite_model():
+    model_path = "malaria_detector.tflite"
+    if not os.path.exists(model_path):
+        st.error("❌ Model file not found. Please ensure 'malaria_detector.tflite' is in the app directory.")
+        return None
+    interpreter = tflite.Interpreter(model_path=model_path)
+    interpreter.allocate_tensors()
+    return interpreter
 
-model = load_model()
+interpreter = load_tflite_model()
+
+if interpreter is None:
+    st.stop()
+
+# Get input/output details
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # -------------------------------
 # IMAGE CAPTURE
 # -------------------------------
-st.subheader("📸 Capture Blood Smear Image")
+st.subheader(text["capture"])
 
-# Option 1: Camera input (for mobile)
-img = st.camera_input("Take a photo of the blood smear")
+# Option 1: Camera input
+img = st.camera_input(text["camera"])
 
-# Option 2: File upload (fallback)
-uploaded_file = st.file_uploader("Or upload an image", type=["jpg", "jpeg", "png"])
+# Option 2: File upload
+uploaded_file = st.file_uploader(text["upload"], type=["jpg", "jpeg", "png"])
 
-# Use whichever is provided
+# Determine input source
+image = None
 if img is not None:
     image = Image.open(img)
 elif uploaded_file is not None:
     image = Image.open(uploaded_file)
-else:
-    image = None
 
 # -------------------------------
 # PROCESSING
@@ -78,34 +133,35 @@ if image is not None:
     # Preprocess
     img_resized = image.resize((128, 128))
     img_array = np.array(img_resized) / 255.0
-    img_array = np.expand_dims(img_array, axis=0)
+    img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
     
-    # Predict
-    with st.spinner("Analyzing..."):
-        prediction = model.predict(img_array)
-        confidence = float(prediction[0][0])
+    # Run inference
+    with st.spinner(text["analyzing"]):
+        interpreter.set_tensor(input_details[0]['index'], img_array)
+        interpreter.invoke()
+        prediction = interpreter.get_tensor(output_details[0]['index'])[0][0]
     
     # Result
     st.divider()
-    st.subheader("🩺 Screening Result")
+    st.subheader(text["result"])
     
-    if confidence > 0.5:
-        st.error(f"⚠️ **Result: Parasitized (Infected)**")
-        st.warning("Refer the patient for immediate clinical evaluation and confirmatory testing.")
-        confidence_display = confidence * 100
+    if prediction > 0.5:
+        st.error(text["infected"])
+        st.warning(text["infected_msg"])
+        confidence_display = prediction * 100
     else:
-        st.success(f"✅ **Result: Uninfected**")
-        st.info("No parasites detected. Continue routine monitoring.")
-        confidence_display = (1 - confidence) * 100
+        st.success(text["uninfected"])
+        st.info(text["uninfected_msg"])
+        confidence_display = (1 - prediction) * 100
     
-    st.metric("Confidence", f"{confidence_display:.2f}%")
+    st.metric(text["confidence"], f"{confidence_display:.2f}%")
     
-    # License Info
+    # License info
     st.divider()
-    st.caption("🔑 Licensed to: [Clinic Name] | Expires: [Date]")
+    st.caption(text["license"])
 
 # -------------------------------
 # FOOTER
 # -------------------------------
 st.divider()
-st.caption("Built with ❤️ by Maimouna Tougoutcho Coulibaly | Sahel BioMed Solutions")
+st.caption(text["footer"])
