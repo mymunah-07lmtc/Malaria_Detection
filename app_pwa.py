@@ -1,7 +1,6 @@
 import streamlit as st
 import numpy as np
 from PIL import Image
-import tflite_runtime.interpreter as tflite
 import os
 
 # -------------------------------
@@ -98,7 +97,7 @@ model = load_keras_model()
 
 if model is None:
     st.stop()
-    
+
 # -------------------------------
 # IMAGE CAPTURE
 # -------------------------------
@@ -131,9 +130,7 @@ if image is not None:
     
     # Run inference
     with st.spinner(text["analyzing"]):
-        interpreter.set_tensor(input_details[0]['index'], img_array)
-        interpreter.invoke()
-        prediction = interpreter.get_tensor(output_details[0]['index'])[0][0]
+        prediction = model.predict(img_array)[0][0]
     
     # Result
     st.divider()
