@@ -8,6 +8,7 @@ An AI-powered malaria detection tool using deep learning (Convolutional Neural N
 
 ## 📦 Project Structure
 Malaria_Detection/
+<<<<<<< HEAD
 ├── app.py                   # Streamlit web application
 ├── train_malaria_model.py   # CNN training script
 ├── requirements.txt         # Python dependencies
@@ -32,6 +33,7 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 ### 3. Install Dependencies
+The trained model files are too large for GitHub. Download them from [Google Drive](https://drive.google.com/file/d/14Cz8IPuspJ8CoVCNFrhWhriWuXTlJ4IU/view?usp=sharing)
 ```bash
 pip install -r requirements.txt
 ```
@@ -71,9 +73,13 @@ streamlit run app.py
 ---
 
 ## 📬 Contact
+
 **Author:** Maimouna Tougoutcho Coulibaly
+
 **Email:** maimounatcoul@gmail.com
+
 **GitHub:** [github.com/mymunah-07lmtc](https://www.github.com/mymunah-07lmtc)
+
 **LinkedIn:** [linkedin.com/in/maimouna-tougoutcho-coulibaly](https://www.linkedin.com/in/maimouna-tougoutcho-coulibaly)
 
 ---

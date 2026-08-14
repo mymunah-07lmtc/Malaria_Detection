@@ -1,8 +1,4 @@
-tensorflow
 streamlit
-matplotlib
-seaborn
+tensorflow-cpu
 numpy
-pandas
-scikit-learn
 pillow
