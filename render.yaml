@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: malaria-detection
+    runtime: image
+    repo: https://github.com/mymunah-07lmtc/malaria_detection
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: PORT
+        value: 10000
