@@ -83,28 +83,22 @@ st.caption(text["subtitle"])
 with st.expander(text["disclaimer_title"], expanded=True):
     st.warning(text["disclaimer"])
 
-# -------------------------------
-# LOAD TFLITE MODEL
-# -------------------------------
+# LOAD KERAS MODEL
 @st.cache_resource
-def load_tflite_model():
-    model_path = "malaria_detector.tflite"
+def load_keras_model():
+    model_path = "malaria_detector.keras"
     if not os.path.exists(model_path):
-        st.error("❌ Model file not found. Please ensure 'malaria_detector.tflite' is in the app directory.")
+        st.error("❌ Model file not found. Please ensure 'malaria_detector.keras' is in the app directory.")
         return None
-    interpreter = tflite.Interpreter(model_path=model_path)
-    interpreter.allocate_tensors()
-    return interpreter
+    import tensorflow as tf
+    model = tf.keras.models.load_model(model_path)
+    return model
 
-interpreter = load_tflite_model()
+model = load_keras_model()
 
-if interpreter is None:
+if model is None:
     st.stop()
-
-# Get input/output details
-input_details = interpreter.get_input_details()
-output_details = interpreter.get_output_details()
-
+    
 # -------------------------------
 # IMAGE CAPTURE
 # -------------------------------
