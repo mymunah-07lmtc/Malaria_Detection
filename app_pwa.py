@@ -1,8 +1,14 @@
-import streamlit as st
-import tensorflow as tf
+import tflite_runtime.interpreter as tflite
 import numpy as np
 from PIL import Image
-import os
+import streamlit as st
+
+# Load TFLite model
+interpreter = tflite.Interpreter(model_path="malaria_detector.tflite")
+interpreter.allocate_tensors()
+
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # -------------------------------
 # PAGE CONFIG
