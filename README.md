@@ -21,7 +21,7 @@ Malaria_Detection/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/Malaria_Detection.git
+git clone https://github.com/mymunah-07lmtc/Malaria_Detection.git
 cd Malaria_Detection
 ```
 ### 2. Set Up Virtual Environment
