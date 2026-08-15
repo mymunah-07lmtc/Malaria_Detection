@@ -2,6 +2,64 @@ import streamlit as st
 import numpy as np
 from PIL import Image
 import os
+import requests
+import gdown
+
+# -------------------------------
+# MODEL DOWNLOAD (First run only)
+# -------------------------------
+MODEL_PATH = "malaria_detector.keras"
+
+def download_model():
+    """Download the model from Google Drive if not present."""
+    if os.path.exists(MODEL_PATH):
+        return
+    
+    st.info("📥 Downloading AI model... This may take a few minutes.")
+    
+    # Google Drive file ID (replace with your actual ID)
+    FILE_ID = "14Cz8IPuspJ8CoVCNFrhWhriWuXTlJ4IU"  # <-- REPLACE THIS
+    
+    try:
+        # Method 1: Using gdown (most reliable)
+        import gdown
+        url = f"https://drive.google.com/uc?id={FILE_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
+    except ImportError:
+        # Method 2: Using requests (fallback)
+        import requests
+        url = f"https://drive.google.com/uc?export=download&id={FILE_ID}"
+        response = requests.get(url, stream=True)
+        with open(MODEL_PATH, "wb") as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+    
+    if os.path.exists(MODEL_PATH):
+        st.success("✅ Model downloaded successfully!")
+    else:
+        st.error("❌ Model download failed. Please check your internet connection.")
+
+# Download model on first run
+download_model()
+
+# -------------------------------
+# LOAD KERAS MODEL
+# -------------------------------
+import tensorflow as tf
+
+@st.cache_resource
+def load_keras_model():
+    try:
+        model = tf.keras.models.load_model(MODEL_PATH)
+        return model
+    except Exception as e:
+        st.error(f"❌ Error loading model: {e}")
+        return None
+
+model = load_keras_model()
+
+if model is None:
+    st.stop()
 
 # -------------------------------
 # PAGE CONFIG
@@ -25,7 +83,6 @@ st.markdown("""
 # -------------------------------
 lang = st.sidebar.radio("Language / Langue", ["English", "Français"])
 
-# Language dictionary
 T = {
     "English": {
         "title": "🦟 Sahel MalaVision",
@@ -44,9 +101,6 @@ T = {
         "confidence": "Confidence",
         "license": "🔑 Licensed to: [Clinic Name] | Expires: [Date]",
         "footer": "Built with ❤️ by Maimouna Tougoutcho Coulibaly | Sahel BioMed Solutions",
-        "mode": "Mode",
-        "demo": "Demo",
-        "live": "Live"
     },
     "Français": {
         "title": "🦟 Sahel MalaVision",
@@ -65,9 +119,6 @@ T = {
         "confidence": "Confiance",
         "license": "🔑 Licencié à : [Nom de la clinique] | Expire le : [Date]",
         "footer": "Construit avec ❤️ par Maimouna Tougoutcho Coulibaly | Sahel BioMed Solutions",
-        "mode": "Mode",
-        "demo": "Démo",
-        "live": "En direct"
     }
 }
 
@@ -82,34 +133,14 @@ st.caption(text["subtitle"])
 with st.expander(text["disclaimer_title"], expanded=True):
     st.warning(text["disclaimer"])
 
-# LOAD KERAS MODEL
-@st.cache_resource
-def load_keras_model():
-    model_path = "malaria_detector.keras"
-    if not os.path.exists(model_path):
-        st.error("❌ Model file not found. Please ensure 'malaria_detector.keras' is in the app directory.")
-        return None
-    import tensorflow as tf
-    model = tf.keras.models.load_model(model_path)
-    return model
-
-model = load_keras_model()
-
-if model is None:
-    st.stop()
-
 # -------------------------------
 # IMAGE CAPTURE
 # -------------------------------
 st.subheader(text["capture"])
 
-# Option 1: Camera input
 img = st.camera_input(text["camera"])
-
-# Option 2: File upload
 uploaded_file = st.file_uploader(text["upload"], type=["jpg", "jpeg", "png"])
 
-# Determine input source
 image = None
 if img is not None:
     image = Image.open(img)
@@ -120,19 +151,15 @@ elif uploaded_file is not None:
 # PROCESSING
 # -------------------------------
 if image is not None:
-    # Display the image
     st.image(image, caption="Captured Image", use_container_width=True)
     
-    # Preprocess
     img_resized = image.resize((128, 128))
     img_array = np.array(img_resized) / 255.0
-    img_array = np.expand_dims(img_array, axis=0).astype(np.float32)
+    img_array = np.expand_dims(img_array, axis=0)
     
-    # Run inference
     with st.spinner(text["analyzing"]):
         prediction = model.predict(img_array)[0][0]
     
-    # Result
     st.divider()
     st.subheader(text["result"])
     
@@ -147,12 +174,8 @@ if image is not None:
     
     st.metric(text["confidence"], f"{confidence_display:.2f}%")
     
-    # License info
     st.divider()
     st.caption(text["license"])
 
-# -------------------------------
-# FOOTER
-# -------------------------------
 st.divider()
 st.caption(text["footer"])
