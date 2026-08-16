@@ -164,12 +164,14 @@ if image is not None:
     st.subheader(text["result"])
     
     if prediction > 0.5:
-        st.error(text["infected"])
-        st.warning(text["infected_msg"])
-        confidence_display = prediction * 100
-    else:
+        # Uninfected (Healthy)
         st.success(text["uninfected"])
         st.info(text["uninfected_msg"])
+        confidence_display = prediction * 100
+    else:
+        # Parasitized (Infected)
+        st.error(text["infected"])
+        st.warning(text["infected_msg"])
         confidence_display = (1 - prediction) * 100
     
     st.metric(text["confidence"], f"{confidence_display:.2f}%")
